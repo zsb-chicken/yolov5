@@ -20,6 +20,7 @@ Pillow = ">=7.1.2"
 PyYAML = ">=5.3.1"
 
 [dev-packages]
+ipykernel = "*"
 
 [requires]
 python_version = "3.9"
