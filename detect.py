@@ -148,17 +148,23 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # im.txt
             s += '%gx%g ' % im.shape[2:]  # print string
+            print('s1',s)
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
                 # Rescale boxes from img_size to im0 size
+                print("det1",det)
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
 
                 # Print results
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                    print("s2",s)
+                    print("n1",n)
+                    print("name",names)
+                    print("c",c)
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
@@ -176,7 +182,8 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                             save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
             # Print time (inference-only)
-            LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
+            LOGGER.info(f'{s}Done!!. ({t3 - t2:.3f}s)')
+            print("ここにRedisへのポストを挿入")
 
             # Stream results
             im0 = annotator.result()
