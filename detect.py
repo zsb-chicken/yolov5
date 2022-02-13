@@ -2,6 +2,8 @@
 """
 Run inference on images, videos, directories, streams, etc.
 
+python detect.py --weights 210123_special_best.pt --source yagra_lose.mp4
+
 Usage - sources:
     $ python path/to/detect.py --weights yolov5s.pt --source 0              # webcam
                                                              img.jpg        # image
@@ -32,6 +34,18 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
+
+### Custom Field ###
+import redis
+from redis_command import Redis_Command
+
+rds = Redis_Command()
+
+
+####################
+
+
+
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -140,7 +154,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             seen += 1
             if webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), dataset.count
-                s += f'{i}: '
+                s += f'{i}:'
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
@@ -148,23 +162,45 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # im.txt
             s += '%gx%g ' % im.shape[2:]  # print string
-            print('s1',s)
+
+            """
+            # print('s1:検知対象のフレーム番号/フレーム総数,検知対象ファイル',s)
+            """
+
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
                 # Rescale boxes from img_size to im0 size
-                print("det1",det)
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
 
                 # Print results
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-                    print("s2",s)
-                    print("n1",n)
-                    print("name",names)
-                    print("c",c)
+
+                    """
+                    ここは実験場
+                    print("n1:tensor(検知総数)",n)
+                    print("n1:tensor(検知総数)",int(n))
+                    print("name:すべてのクラス名",names)
+                    print("c:何番目のクラスに関するものを検知したか",c)
+                    print("class:クラス名は何か",names[int(c)])
+                    print("det unique",det[:, -1].unique())
+                    print("det sum",(det[:, -1] == c).sum())
+                    print("-----ここから下は.type()----")
+                    print("n1:tensor(検知総数)",n.type())
+                    print("det unique",det[:, -1].unique().type())
+                    print("det sum",(det[:, -1] == c).sum().type)
+                    """
+
+                    # "name[int(c)]をvalueに"ここでredisへ接続させるとできそう
+                    # ただ、出てくるのは,検知結果のClassだけ。一度に検知した内容が順番に出てくるわけではない。
+                    # まあ、でも保存できるところまでをとりあえず確認する。
+                    
+                    rds.redis_stream_data_set({names[int(c)]:int(n)})
+                    print({names[int(c)]:int(n)})
+
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
@@ -175,6 +211,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
                     if save_img or save_crop or view_img:  # Add bbox to image
+                        print("class",int(cls))
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         annotator.box_label(xyxy, label, color=colors(c, True))
@@ -183,7 +220,6 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
             # Print time (inference-only)
             LOGGER.info(f'{s}Done!!. ({t3 - t2:.3f}s)')
-            print("ここにRedisへのポストを挿入")
 
             # Stream results
             im0 = annotator.result()
