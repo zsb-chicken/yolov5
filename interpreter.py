@@ -10,8 +10,6 @@ import time
 
 rds = Redis_Command()
 
-streamkey = "2022-02-13-21:00:52"
-
 class Interpreter:    
     def __init__(self,streamkey,group) -> None:
         self.special_d = deque(maxlen=8)
@@ -30,7 +28,7 @@ class Interpreter:
 
     def queue(self):
         b = self.redis_read()[0][1][0][1][self.group]
-        self.special_d.append(b)
+        self.special_d.append(int(b))
         return self.special_d
 
 if __name__ == "__main__":
@@ -47,6 +45,9 @@ if __name__ == "__main__":
         # print(c[0][1][0][1]["special"]) と同義
         d = itprt.queue()
         print(d)
+
+        if max(d) >= 2:
+            print("スペシャル合わせろ！！！")
 
     #終わり
     else:
