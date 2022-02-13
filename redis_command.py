@@ -32,15 +32,16 @@ class Redis_Command:
         self.r.xadd(self.streamkey,dict,"*")
         print("def_redis_stream_data_set...",dict)
 
-    def redis_stream_data_read(self):
-        self.r.xread(self.streamkey,block=0)
-        pass
+    # def redis_stream_data_read(self):
+    #     fields = self.r.xread(self.streamkey,block=0)
+    #     return fields
 
-    def redis_stream_data_readgroup(self,names,streamkey):
-        fields = self.r.xreadgroup(names,names+"-1",{self.streamkey:0},1,block=None)
-        print("consumer_groupname:",names)
-        print("consumername:",names+"-"+1)
-        return fields
+    # def redis_stream_data_readgroup(self,names,streamkey):
+    #     fields = self.r.xreadgroup(names,names+"-1",{streamkey:0},1,block=None)
+    #     print("consumer_groupname:",names)
+    #     print("consumername:",names+"-"+1)
+    #     return fields
+
 
 if __name__ == '__main__':
     """
