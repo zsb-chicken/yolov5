@@ -40,8 +40,7 @@ import redis
 from redis_command import Redis_Command
 
 rds = Redis_Command()
-
-
+print(rds.commonkey_set())
 ####################
 
 

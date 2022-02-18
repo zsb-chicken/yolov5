@@ -1,20 +1,15 @@
-
-
 from collections import deque
-from optparse import Values
-from tokenize import Special
-from pandas import array
-import redis
 from redis_command import Redis_Command
 import time
 
 rds = Redis_Command()
 
 class Interpreter:    
-    def __init__(self,streamkey,group) -> None:
-        self.special_d = deque(maxlen=8)
-        self.streamkey = streamkey
-        self.group = group
+    def __init__(self,fieldkey) -> None:
+        self.special_deque = deque(maxlen=8)
+        self.streamkey = rds.commonkey_get()
+        print(rds.commonkey_get())
+        self.fieldkey = fieldkey
 
     # def special_itprt(names):
     #     fields_key = "special"
@@ -23,31 +18,40 @@ class Interpreter:
     #     return  print(special_num)
 
     def redis_read(self):
-        fields = rds.r.xread({self.streamkey:0},block=0,count=1)
+        fields = rds.r.xread({self.streamkey:"$"},block=0,count=1)
         return fields
 
     def queue(self):
-        b = self.redis_read()[0][1][0][1][self.group]
-        self.special_d.append(int(b))
-        return self.special_d
+        b = self.redis_read()[0][1][0][1][self.fieldkey]
+        self.special_deque.append(int(b))
+        return self.special_deque
 
 if __name__ == "__main__":
     #Interpreterの起動時間
-    itprt = Interpreter("2022-02-13-21:00:52","special")
-
+    itprt = Interpreter("special")
+    
     while time.time() - time.time() <= 30:
         time.sleep(0.1)
 
-        # 実際の処理はここから        
-        c = itprt.redis_read()
-        print(c)
+        # 実際の処理はここから
 
-        # print(c[0][1][0][1]["special"]) と同義
+        #redis_readの中身を確認するなら
+        # print("fields",itprt.redis_read())
+
         d = itprt.queue()
         print(d)
 
-        if max(d) >= 2:
-            print("スペシャル合わせろ！！！")
+        if max(d) == 1 or max(d) == 2:
+            rds.redis_stream_data_set_2({"instruction1":"スペシャルあるぞ"})
+
+        elif max(d) == 3:
+            rds.redis_stream_data_set_2({"instruction1":"スペシャル合わせろ"})
+
+        elif max(d) >= 4:
+            rds.redis_stream_data_set_2({"instruction1":"スペシャル合わせろよ！！！！"})
+
+        else:
+            pass
 
     #終わり
     else:

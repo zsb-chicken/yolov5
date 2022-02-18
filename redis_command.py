@@ -12,14 +12,23 @@ from collections import deque
 
 class Redis_Command:
     r = redis.Redis(host='localhost', port=6379, decode_responses = True, db=0) 
+    r2 = redis.Redis(host='localhost', port=6379, decode_responses = True, db=1) 
 
-    def __init__(self) -> None:
+    def __init__(self):
         """
         streamkeyをタイムスタンプにして、毎回動作のたびにストリームを分けて動作するようにする
         """
         today =  datetime.datetime.now()
         self.streamkey = today.strftime('%Y-%m-%d-%H:%M:%S')
-        print(self.streamkey)
+        #redis streamのstreamIDとするキーとしてcommonkeyを定義
+
+    def commonkey_set(self):
+        self.r.set("commonkey",self.streamkey)
+        return self.r.get("commonkey")
+
+    def commonkey_get(self):
+        self.commonkey = self.r.get("commonkey")
+        return self.commonkey
 
     def redis_data_set(self, detect_values):
         #r.set('hoge', 'moge')
@@ -29,11 +38,19 @@ class Redis_Command:
         self.r.set(keys, values)
 
     def redis_stream_data_set(self, dict):
-        self.r.xadd(self.streamkey,dict,"*")
-        print("def_redis_stream_data_set...",dict)
+        self.r.xadd(self.commonkey_get(),dict,"*")
+
+        #redisに入れるデータを出力するなら
+        # print("def_redis_stream_data_set...",dict)
+
+    def redis_stream_data_set_2(self, dict):
+        self.r2.xadd(self.commonkey_get(),dict,"*")
+
+        #redisに入れるデータを出力するなら
+        #print("def_redis_stream_data_set_2...",dict) 
 
     # def redis_stream_data_read(self):
-    #     fields = self.r.xread(self.streamkey,block=0)
+    #     fields = self.r.xread(self.commonkey,block=0)
     #     return fields
 
     # def redis_stream_data_readgroup(self,names,streamkey):
@@ -41,7 +58,8 @@ class Redis_Command:
     #     print("consumer_groupname:",names)
     #     print("consumername:",names+"-"+1)
     #     return fields
-
+    
+    
 
 if __name__ == '__main__':
     """
@@ -49,3 +67,4 @@ if __name__ == '__main__':
     """
     Rtest = Redis_Command()
     Rtest.redis_stream_data_set({"testkey":"testvalue"})
+    Rtest.redis_stream_data_set_2({"testkey_2":"testvalue_2"})
