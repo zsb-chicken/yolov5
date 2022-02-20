@@ -1,5 +1,3 @@
-from collections import deque
-from torch import feature_alpha_dropout
 from redis_command import Redis_Command
 import datetime
 import pandas as pd
