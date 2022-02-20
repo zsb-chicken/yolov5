@@ -38,16 +38,13 @@ class Redis_Command:
         self.r.set(keys, values)
 
     def redis_stream_data_set(self, dict):
-        self.r.xadd(self.commonkey_get(),dict,"*")
-
-        #redisに入れるデータを出力するなら
-        # print("def_redis_stream_data_set...",dict)
+        self.redisid_db0 = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+        self.r.xadd(self.commonkey_get(),dict,id=self.redisid_db0[:-1]) #redisに入るように
 
     def redis_stream_data_set_2(self, dict):
-        self.r2.xadd(self.commonkey_get(),dict,"*")
-
-        #redisに入れるデータを出力するなら
-        #print("def_redis_stream_data_set_2...",dict) 
+        self.redisid_db1 = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+        self.r2.xadd(self.commonkey_get(),dict,id=self.redisid_db1[:-1])
+       
 
     # def redis_stream_data_read(self):
     #     fields = self.r.xread(self.commonkey,block=0)
@@ -60,11 +57,10 @@ class Redis_Command:
     #     return fields
     
     
-
 if __name__ == '__main__':
     """
     .pyを動かすと、この結果が返る
     """
     Rtest = Redis_Command()
     Rtest.redis_stream_data_set({"testkey":"testvalue"})
-    Rtest.redis_stream_data_set_2({"testkey_2":"testvalue_2"})
+    # Rtest.redis_stream_data_set_2({"testkey_2":"testvalue_2"})
