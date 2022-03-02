@@ -32,6 +32,7 @@ if __name__ == "__main__":
             values.append(value)
 
     # pd_data = pd.DataFrame(data=values,index=index,columns=columns)
+    
     print(index)
     print(columns)
     print(values)
