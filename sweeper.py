@@ -1,8 +1,14 @@
 from redis_command import Redis_Command
+from mongo_command import Mongo_Command
+
 import datetime
 import pandas as pd
+import numpy as np
+import pymongo
+from pymongo import MongoClient
 
 rds = Redis_Command()
+mng = Mongo_Command()
 
 class Sweeper:
     """
@@ -21,18 +27,28 @@ if __name__ == "__main__":
     swep = Sweeper()
     all = swep.sweeper()
     index = []
-    columns = []
-    values = []
+    columns_list = ["special","special_value"] # ここのリストは都度増えるように変えないとだめ
+    column_1 = [] 
+    value_1 = []
     
+    """
+    # 改修メモ
+    カラムリストは、検知リストに何があるかを取ってくるようにした方が良い
+    そのリスト名を取得して、変数名にできると良い。exec関数を使うと行けそう。
+    """ 
+
     for time,dicts in all:
         index.append(time[:-2])
 
         for key,value in dicts.items():
-            columns.append(key)
-            values.append(value)
+            column_1.append(key)
+            value_1.append(value)
 
-    # pd_data = pd.DataFrame(data=values,index=index,columns=columns)
+    one_game_results = pd.DataFrame(data=zip(column_1,value_1),
+                                    columns=columns_list,
+                                    index=index)
     
-    print(index)
-    print(columns)
-    print(values)
+    one_game_results = one_game_results.to_json(orient = 'index')
+
+    # print(one_game_results)
+    mng.collection.insert_one({"one_game_results":one_game_results})

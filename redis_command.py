@@ -58,9 +58,6 @@ class Redis_Command:
     
     
 if __name__ == '__main__':
-    """
-    .pyを動かすと、この結果が返る
-    """
     Rtest = Redis_Command()
     Rtest.redis_stream_data_set({"testkey":"testvalue"})
     # Rtest.redis_stream_data_set_2({"testkey_2":"testvalue_2"})
